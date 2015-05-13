@@ -1,0 +1,7 @@
+1. Data formats, reading, plotting. 
+2.-5. Fluid equations and Generalized Ohms Law as focus, different methods based on single and multi-s/c data (Walen test, different minimization methods for boundaries, multi-s/c timing, gradients, curlometer)
+6-7. Kinetic aspects (D-shaped distributions, particle beams, plasma waves)
+8. Work with MMS data
+- we would need matlab and use matlab code throughout the school
+  - then it would be good if in the project work students either make deeper focus on satellite data or simulations, or they can also do some simple combined work involving both.
+
