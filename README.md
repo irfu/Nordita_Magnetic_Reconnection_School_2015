@@ -1,1 +1,3 @@
-# Nordita_Magnetic_Reconnection_School_2015
+# Magnetic Reconnection School 2015
+Nordita, Stockholm, August 2015
+
