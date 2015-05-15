@@ -1,7 +1,14 @@
 
+% Nordita 2015, School Data Analysis
+% 
 % Lecture 1
 %
-% - 
+%  Data representation
+%  Data reading
+%  Data plotting
+%  Data access from databases
+%  Data massage
+%
 
 %% Example 1  artifical times series
 % Lets generate 5samples/s time series in interval 2008-03-01 10:00-11:00 UT,
