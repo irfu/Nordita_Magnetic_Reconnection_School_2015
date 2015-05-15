@@ -1,5 +1,4 @@
-
-% Nordita 2015, School Data Analysis
+%% Nordita 2015, School Data Analysis
 % 
 % Lecture 1
 %
