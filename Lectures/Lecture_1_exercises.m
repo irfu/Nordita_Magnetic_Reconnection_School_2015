@@ -9,7 +9,7 @@
 %	    y(t)=exp(0.001(t-to))*sin(t-to) 
 %  - plot it.
 
-T = irf_time([2008 03 01 10 0 0],'vector>ts') + (0:.2:3600);
+T = irf_time([2008 03 01 10 0 0],'vector>epochtt') + (0:.2:3600);
 t = T.t-T.t(1);
 y = exp(0.001*t).*sin(2*pi*t/180);	
 Y = TSeries(T,y);
