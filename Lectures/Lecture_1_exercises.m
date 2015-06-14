@@ -10,19 +10,18 @@
 %
 
 %% Example 1  artifical times series
-% Lets generate 5samples/s time series in interval 2008-03-01 10:00-11:00 UT,
-%  - create exponentially growing wave 
-%	    y(t)=exp(0.001(t-to))*sin(t-to) 
-%  - plot it.
+% Lets generate 5samples/s time series during 1h after 2002-03-04 09:30 UTC,
+% showing exponentially growing wave and plot. It is good idead to get used 
+% to using axis handles (variable 'h' in example). 
 
-T = irf_time([2008 03 01 10 0 0],'vector>epochtt') + (0:.2:3600);
-t = T.t-T.t(1);
-y = exp(0.001*t).*sin(2*pi*t/180);	
-Y = TSeries(T,y);
+T   = EpochTT('2002-03-04T09:30:00Z'):.2...
+     :EpochTT('2002-03-04T10:30:00Z');      % define time line as EpochTT object
+t   = T.tts - T.tts(1);                     % define relative time in s from start
+x   = exp(0.001*t).*sin(2*pi*t/180);        % define function x(t)=exp(0.001(t-to))*sin(t-to)
+TS1 = irf.ts_scalar(T,x);                   % define scalar TSeries object
 
-% plot
-h = irf_plot(1,'newfigure'); % generate new figure with 1 panel
-irf_plot(h,Y);						   % plot data
+h   = irf_plot(1,'newfigure');			        % initialize figure
+irf_plot(h,TS1);						                % plot times series  
 
 %% Example  2 Plot multicomponent data
 % Generate data with two components and plot in the same figure.
