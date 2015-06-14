@@ -1,0 +1,21 @@
+Lectures on satellite data analysis consists of 8 blocks x 2h each.
+In each block there are 20min lecture and demonstration followed by hands on exercises.
+All participants will need access to matlab on their own (preferentially) or provided computers. 
+Project work: deeper focus on satellite data or simulations, or combined work involving both.
+
+Satellite data analysis Day 1
+=============================
+1. Data formats, reading, plotting. 
+2. Single s/c methods for boundaries.
+
+3. Fluid equations, single s/c methods. Walén test. 
+4. Multi-s/c methods. Timing
+
+Satellite data analysis Day 2
+=============================
+5. Multi-s/c methods. Curlometer, gradients.
+6. Distribution functions. D-shaped distributions. 
+
+7. Plasma waves. Spectra, interferometry.
+8. Work with MMS data. 
+
