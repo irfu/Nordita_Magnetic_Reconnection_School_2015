@@ -19,3 +19,4 @@ Satellite data analysis Day 2
 7. Plasma waves. Spectra, interferometry.
 8. Work with MMS data. 
 
++Define project
