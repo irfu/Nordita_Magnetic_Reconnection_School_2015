@@ -5,18 +5,18 @@ Project work: deeper focus on satellite data or simulations, or combined work in
 
 Satellite data analysis Day 1
 =============================
-1. Data formats, reading, plotting. 
-2. Single s/c methods for boundaries.
+1. Data formats, reading, plotting. (Yuri)
+2. Single s/c methods for boundaries. (Andris)
 
-3. Fluid equations, single s/c methods. Walén test. 
-4. Multi-s/c methods. Timing
+3. Fluid equations, single s/c methods. Walén test. (Andris) 
+4. Multi-s/c methods. Timing (Yuri)
 
 Satellite data analysis Day 2
 =============================
-5. Multi-s/c methods. Curlometer, gradients.
-6. Distribution functions. D-shaped distributions. 
+5. Multi-s/c methods. Curlometer, gradients. (Andris)
+6. Distribution functions. D-shaped distributions. (Daniel)
 
-7. Plasma waves. Spectra, interferometry.
-8. Work with MMS data. 
+7. Plasma waves. Spectra, interferometry. (Daniel)
+8. Work with MMS data. (Yuri)
 
 +Define project
