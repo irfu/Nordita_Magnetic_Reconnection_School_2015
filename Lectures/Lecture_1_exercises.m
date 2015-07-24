@@ -63,10 +63,10 @@ irf_zoom(h,'y');
 
 h=irf_plot({F,Fnew},'comp');
 ylabel(h(1),'F_X');
-title(h(1),T(1).utc('yyyy-mm-dd'));
+title(h(1),T.start.utc('yyyy-mm-dd'));
 ylabel(h(2),'F_Y');
 irf_legend(h(1),{'FNew','Fnew=F*2+2'},[0.02 0.98])
 
-Hours=TSeries(T,(T.t-T.t(1))/3600); % hours from the beginning of the time interval
+Hours=TSeries(T,(T-T.start)/3600); % hours from the beginning of the time interval
 irf_timeaxis(h(2),Hours,{'hours'})
 irf_timeaxis(h(end),'nodate');
