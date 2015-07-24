@@ -16,12 +16,16 @@
 
 T   = EpochTT('2002-03-04T09:30:00Z'):.2...
      :EpochTT('2002-03-04T10:30:00Z');      % define time line as EpochTT object
-t   = T.tts - T.tts(1);                     % define relative time in s from start
+t   = T - T.start;                     % define relative time in s from start
 x   = exp(0.001*t).*sin(2*pi*t/180);        % define function x(t)=exp(0.001(t-to))*sin(t-to)
 TS1 = irf.ts_scalar(T,x);                   % define scalar TSeries object
 
 h   = irf_plot(1,'newfigure');			        % initialize figure
 irf_plot(h,TS1);						                % plot times series  
+
+%% Example  time interval
+Tint = irf.tint('2002-03-04T09:40:00Z/2002-03-04T10:20:00Z');
+irf_zoom(h,'x',Tint)
 
 %% Example  2 Plot multicomponent data
 % Generate data with two components and plot in the same figure.
@@ -29,8 +33,8 @@ irf_plot(h,TS1);						                % plot times series
 % As you notice irfu-matlab interprets some common names for variables, 
 % i.e. B2 is assumed to be magnetic field measurement by Cluster 2
 
-z = exp(0.001*t).*cos(2*pi*t/180);	% z(t)=exp(0.001(t-to))*cos(t)
-F = TSeries(T,[y z]);							          % B2 has two components, y & z
+y = exp(0.001*t).*cos(2*pi*t/180);	% z(t)=exp(0.001(t-to))*cos(t)
+F = TSeries(T,[x y]);							          % B2 has two components, x & y
 irf_plot(h,F)					          % plot in the same axis
 irf_legend({'X','Y'},[0.02 0.02])	% add legend text with the same colors as lines
 
