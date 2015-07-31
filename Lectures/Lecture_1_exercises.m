@@ -9,6 +9,12 @@
 %  Data massage
 %
 
+%% Download and examine CDF files
+tint = '2002-03-30T13:11:30Z/2002-03-30T13:12:00Z';
+caa_download(tint,'C?_CP_FGM_FULL');
+info=spdfcdfinfo('CAA/C1_CP_FGM_FULL/C1_CP_FGM_FULL__20020330_131130_20020330_131200_V140306.cdf')
+
+
 %% Example 1  artifical times series
 % Lets generate 5samples/s time series during 1h after 2002-03-04 09:30 UTC,
 % showing exponentially growing wave and plot. It is good idead to get used 
