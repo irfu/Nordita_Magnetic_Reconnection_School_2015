@@ -1,46 +1,72 @@
-ic = 2; %Spacecraft number 1--4
+% Script to plot search coil magnetic fields from L2 internal burst mode.
+% Fields are transformed into field-aligned and minimum variance
+% coordinates. Estimates wave-normal angle from minimum variance analysis.
+% Plots time series of B and hodograms.
 
-Bisr2 = c_caa_var_get(irf_ssub('B_vec_xyz_isr2__C?_CP_FGM_FULL_ISR2',ic),'caa','mat');
-SCpos = c_caa_var_get(irf_ssub('sc_pos_xyz_isr2__C?_CP_FGM_FULL_ISR2',ic),'caa','mat');
-Bibm=c_caa_var_get(irf_ssub('B_Vec_xyz_ISR2__C?_CP_EFW_L2_BB',ic),'caa','mat');
+ic = 4; %Spacecraft number 1--4
 
-bmint = irf_time([Bibm(1,1), Bibm(end,1)],'epoch>iso');
+%Read in Cluster data: Search coil B, FGM B, and SC position.
+Bisr2 = c_caa_var_get(irf_ssub('B_vec_xyz_isr2__C?_CP_FGM_FULL_ISR2',ic),'caa','ts');
+SCpos = c_caa_var_get(irf_ssub('sc_pos_xyz_isr2__C?_CP_FGM_FULL_ISR2',ic),'caa','ts');
+Bibm=c_caa_var_get(irf_ssub('B_Vec_xyz_ISR2__C?_CP_EFW_L2_BB',ic),'caa','ts');
+
 fprintf('Interval burst mode interval \n')
-fprintf(strcat(bmint(1,:),'--',bmint(2,:),'\n'))
+fprintf(strcat(Bibm.time.start.utc,'--',Bibm.time.stop.utc,'\n\n'))
+tlimit = irf.tint(Bibm.time.start.utc,Bibm.time.stop.utc);
+Bisr2 = Bisr2.tlim(tlimit);
+SCpos = SCpos.tlim(tlimit);
 
-Bisr2=irf_tlim(Bisr2,[Bibm(1,1) Bibm(end,1)]);
-Bisr2 = irf_resamp(Bisr2,Bibm);
+%Resample data to the same frequency as the search coil
+Bisr2 = Bisr2.resample(Bibm.time);
+SCpos = SCpos.resample(Bibm.time);
 
-%set undefined points to zero
-Bibm(isnan(Bibm)) = 0;
+%rotate entire burst mode interval into field-aligned coordinates
+Bfac = Bibm;
+Bmag = sqrt(Bisr2.data(:,1).^2+Bisr2.data(:,2).^2+Bisr2.data(:,3).^2);
+Rpar = Bisr2.data./[Bmag Bmag Bmag];
+Rperpy = irf_cross(Rpar,SCpos.data);
+Rmag = sqrt(Rperpy(:,1).^2+Rperpy(:,2).^2+Rperpy(:,3).^2);
+Rperpy = Rperpy./[Rmag Rmag Rmag];
+Rperpx = irf_cross(Rperpy, Rpar);
+Rmag = sqrt(Rperpx(:,1).^2+Rperpx(:,2).^2+Rperpx(:,3).^2);
+Rperpx = Rperpx./[Rmag Rmag Rmag];
+
+Bfac.data(:,3)=  Rpar(:,1).*Bibm.data(:,1)+  Rpar(:,2).*Bibm.data(:,2)+  Rpar(:,3).*Bibm.data(:,3);
+Bfac.data(:,1)=Rperpx(:,1).*Bibm.data(:,1)+Rperpx(:,2).*Bibm.data(:,2)+Rperpx(:,3).*Bibm.data(:,3);
+Bfac.data(:,2)=Rperpy(:,1).*Bibm.data(:,1)+Rperpy(:,2).*Bibm.data(:,2)+Rperpy(:,3).*Bibm.data(:,3);
 
 % select time interval of interest
-tint1 = [irf_time([2003 03 01 04 02 20.5],'vector6>epoch') irf_time([2003 03 01 04 02 21.5],'vector6>epoch')]; % short time interval within internal burst interval
-%tint1 = [Bibm(1,1) Bibm(end,1)]; %entire internal burst mode interval
-
-
+tint1 = EpochUnix([iso2epoch('2003-03-01T03:59:07.4Z') iso2epoch('2003-03-01T03:59:08.2Z')]);
 
 %extract shorter time interval
-Bibms=irf_tlim(Bibm,tint1);
+Bibms=Bibm.tlim(tint1);
+Bfacs=Bfac.tlim(tint1);
 
-%remove background field
-Bibms(:,2) = Bibms(:,2)-nanmean(Bibms(:,2));
-Bibms(:,3) = Bibms(:,3)-nanmean(Bibms(:,3));
-Bibms(:,4) = Bibms(:,4)-nanmean(Bibms(:,4));
 
-Bisr2s=irf_tlim(Bisr2,tint1);
+%remove background offset fields
+Bibms.data(:,1) = Bibms.data(:,1)-nanmean(Bibms.data(:,1));
+Bibms.data(:,2) = Bibms.data(:,2)-nanmean(Bibms.data(:,2));
+Bibms.data(:,3) = Bibms.data(:,3)-nanmean(Bibms.data(:,3));
+Bfacs.data(:,1) = Bfacs.data(:,1)-nanmean(Bfacs.data(:,1));
+Bfacs.data(:,2) = Bfacs.data(:,2)-nanmean(Bfacs.data(:,2));
+Bfacs.data(:,3) = Bfacs.data(:,3)-nanmean(Bfacs.data(:,3));
 
-Bmag = sqrt(Bisr2s(:,2).^2+Bisr2s(:,3).^2+Bisr2s(:,4).^2);
+
+% Calculate average direction of B over the short time interval tint1
+Bisr2s=Bisr2.tlim(tint1);
+Bmag = sqrt(Bisr2s.data(:,1).^2+Bisr2s.data(:,2).^2+Bisr2s.data(:,3).^2);
 Bmag = nanmean(Bmag);
+Bvec = nanmean(Bisr2s.data(:,[1:3]))/Bmag;
 
-% Average vector of B over time interval tint
-Bvec = nanmean(Bisr2s(:,[2:4]))/Bmag;
 
 % Simple minimum variance analysis
 % Construct MVA matrix
-MVArow1 = [mean(Bibms(:,2).^2)-mean(Bibms(:,2))^2 mean(Bibms(:,2).*Bibms(:,3))-mean(Bibms(:,2))*mean(Bibms(:,3)) mean(Bibms(:,2).*Bibms(:,4))-mean(Bibms(:,2))*mean(Bibms(:,4))];
-MVArow2 = [mean(Bibms(:,3).*Bibms(:,2))-mean(Bibms(:,3))*mean(Bibms(:,2)) mean(Bibms(:,3).^2)-mean(Bibms(:,3))^2 mean(Bibms(:,3).*Bibms(:,4))-mean(Bibms(:,3))*mean(Bibms(:,4))];
-MVArow3 = [mean(Bibms(:,4).*Bibms(:,2))-mean(Bibms(:,4))*mean(Bibms(:,2)) mean(Bibms(:,4).*Bibms(:,3))-mean(Bibms(:,4))*mean(Bibms(:,3)) mean(Bibms(:,4).^2)-mean(Bibms(:,4))^2];    
+MVArow1 = [nanmean(Bibms.data(:,1).^2)-nanmean(Bibms.data(:,1))^2 nanmean(Bibms.data(:,1).*Bibms.data(:,2))-nanmean(Bibms.data(:,1))*nanmean(Bibms.data(:,2)) ...
+    nanmean(Bibms.data(:,1).*Bibms.data(:,3))-nanmean(Bibms.data(:,1))*nanmean(Bibms.data(:,3))];
+MVArow2 = [nanmean(Bibms.data(:,2).*Bibms.data(:,1))-nanmean(Bibms.data(:,1))*nanmean(Bibms.data(:,1)) nanmean(Bibms.data(:,2).^2)-nanmean(Bibms.data(:,2))^2 ...
+    nanmean(Bibms.data(:,2).*Bibms.data(:,3))-nanmean(Bibms.data(:,2))*nanmean(Bibms.data(:,3))];
+MVArow3 = [nanmean(Bibms.data(:,3).*Bibms.data(:,1))-nanmean(Bibms.data(:,3))*nanmean(Bibms.data(:,1)) ... 
+    nanmean(Bibms.data(:,3).*Bibms.data(:,2))-nanmean(Bibms.data(:,3))*nanmean(Bibms.data(:,2)) nanmean(Bibms.data(:,3).^2)-nanmean(Bibms.data(:,3))^2];    
 MVAmat = [MVArow1; MVArow2; MVArow3];
 
 [MVAvecs,MVAeigs] = eig(MVAmat);
@@ -60,21 +86,16 @@ fprintf(strcat('Wave normal angle theta_k = ',num2str(thetak),'\n'))
 % Coordinate transformation from ISR2 coordinates to Min Var coordinate
 % system
 Bibmmva = Bibms;
-Bibmmva(:,2) = Bibms(:,2)*vmax(1)+Bibms(:,3)*vmax(2)+Bibms(:,4)*vmax(3); 
-Bibmmva(:,3) = Bibms(:,2)*vint(1)+Bibms(:,3)*vint(2)+Bibms(:,4)*vint(3);
-Bibmmva(:,4) = Bibms(:,2)*vmin(1)+Bibms(:,3)*vmin(2)+Bibms(:,4)*vmin(3);
+Bibmmva.data(:,1) = Bibms.data(:,1)*vmax(1)+Bibms.data(:,2)*vmax(2)+Bibms.data(:,3)*vmax(3); 
+Bibmmva.data(:,2) = Bibms.data(:,1)*vint(1)+Bibms.data(:,2)*vint(2)+Bibms.data(:,3)*vint(3);
+Bibmmva.data(:,3) = Bibms.data(:,1)*vmin(1)+Bibms.data(:,2)*vmin(2)+Bibms.data(:,3)*vmin(3);
 
-
-%Rotate into field aligned coordinates
-Bfac = irf_convert_fac(Bibms,Bisr2,SCpos);
-
-Bfacs = irf_tlim(Bfac,tint1);
 
 
 %some plots of magnetic field waveforms
 
 %Hodograms in Minimum variance coordinates
-if 1,
+if 1, 
 fn=figure;
 set(fn,'Position',[10 400 600 200])
     h(1)=axes('position',[0.07 0.2 0.25 0.75]); % [x y dx dy]
@@ -85,27 +106,29 @@ set(fn,'Position',[10 400 600 200])
     set(fn,'userdata',ud);
     set(fn,'defaultLineLineWidth',2); 
 
-plot(h(1),Bibmmva(:,4),Bibmmva(:,2));
+plot(h(1),Bibmmva.data(:,3),Bibmmva.data(:,1));
 ylabel(h(1),'B_{max} (nT)');
 xlabel(h(1),'B_{min} (nT)');
 irf_zoom(h(1),'x',[-0.3 0.3])
 irf_zoom(h(1),'y',[-0.3 0.3])
 
-plot(h(2),Bibmmva(:,4),Bibmmva(:,3));
+plot(h(2),Bibmmva.data(:,3),Bibmmva.data(:,2));
 ylabel(h(2),'B_{int} (nT)');
 xlabel(h(2),'B_{min} (nT)');
 irf_zoom(h(2),'x',[-0.3 0.3])
 irf_zoom(h(2),'y',[-0.3 0.3])
 
-plot(h(3),Bibmmva(:,3),Bibmmva(:,2));
+plot(h(3),Bibmmva.data(:,2),Bibmmva.data(:,1));
 ylabel(h(3),'B_{max} (nT)');
 xlabel(h(3),'B_{int} (nT)');
 irf_zoom(h(3),'x',[-0.3 0.3])
 irf_zoom(h(3),'y',[-0.3 0.3])
 
+if 0, %set to 1 to save figure
  set(gcf,'paperpositionmode','auto') % to get the same on paper as on screen
  print -depsc -painters minvarhodograms.eps;
-
+end
+ 
 end
 
 % B waveform in ISR2 coordinates and field-aligned coordiantes. 
@@ -121,13 +144,13 @@ irf_legend(h(1),{'B_x','B_y','B_z'},[0.5 0.1])
 irf_legend(h(1),'(a)',[0.99 0.98],'color','k')
 
 h(2)=irf_panel('Bfac');
-irf_plot(h(2),Bfac);
+irf_plot(h(2),Bfacs);
 ylabel(h(2),'B_{FAC} (nT)');
 irf_legend(h(2),{'B_x','B_y','B_z'},[0.5 0.1])
 irf_legend(h(2),'(b)',[0.99 0.98],'color','k')
 
 h(3)=irf_panel('Bfac2');
-irf_plot(h(3),Bfac);
+irf_plot(h(3),Bfacs);
 ylabel(h(3),'B_{FAC} (nT)');
 irf_legend(h(3),{'B_x','B_y','B_z'},[0.5 0.1])
 irf_legend(h(3),'(c)',[0.99 0.98],'color','k')
@@ -135,7 +158,7 @@ irf_legend(h(3),'(c)',[0.99 0.98],'color','k')
 xwidth = 0.86;
 ywidth = 0.18;
 
-tint2 = [irf_time([2003 03 01 04 02 20.8],'vector6>epoch') irf_time([2003 03 01 04 02 21.0],'vector6>epoch')];
+tint2 = EpochUnix([iso2epoch('2003-03-01T03:59:07.55Z') iso2epoch('2003-03-01T03:59:07.65Z')]);
 
 irf_plot_axis_align(1,h(1:3))
 irf_zoom(h(1:2),'x',tint1);
@@ -145,13 +168,16 @@ set(h(1),'position',[0.12 0.99-ywidth xwidth ywidth]);
 set(h(2),'position',[0.12 0.99-2*ywidth xwidth ywidth]);
 set(h(3),'position',[0.12 0.99-3*ywidth-0.05 xwidth ywidth]);
 
-irf_pl_mark(h(1:2),tint2,[255 255 0]/255)
+irf_pl_mark(h(1:2),irf_time(tint2,'epochtt>epoch')',[255 255 0]/255)
 irf_plot_zoomin_lines_between_panels(h(2),h(3));
 
 irf_timeaxis(h(1:2),'nodate');
 
+if 0,
  set(gcf,'paperpositionmode','auto') % to get the same on paper as on screen
  print -depsc -painters whistlerfac.eps;
+end
+
 end
 
 % Hodogram in field-aligned coordinates
@@ -164,10 +190,13 @@ set(fn,'Position',[10 400 250 250])
     set(fn,'userdata',ud);
     set(fn,'defaultLineLineWidth',2); 
 
-plot(h(1),Bfacs(:,3),Bfacs(:,2),Bfacs(1,3),Bfacs(1,2),'ko',Bfacs(end,3),Bfacs(end,2),'kx');
+plot(h(1),Bfacs.data(:,2),Bfacs.data(:,1),Bfacs.data(1,2),Bfacs.data(1,1),'ko',Bfacs.data(end,2),Bfacs.data(end,1),'kx');
 ylabel(h(1),'B_x (nT)');
 xlabel(h(1),'B_y (nT)');
 
+if 0,
  set(gcf,'paperpositionmode','auto') % to get the same on paper as on screen
  print -depsc -painters whistlerhodogram.eps;
+end
+
 end
