@@ -72,6 +72,8 @@ tInt = irf.tint('2001-07-05T04:30:00Z/2001-07-05T06:30:00Z');
 
 %caa_download(tInt,'C1_CP_FGM_SPIN');
 %caa_download(tInt,'C1_CP_EFW_L3_E3D_GSE');
+caa_download(tInt,'C1_CP_CIS_HIA_ONBOARD_MOMENTS');
+
 caa_load C1_CP_FGM_SPIN
 B1 = irf_get_data('B_vec_xyz_gse__C1_CP_FGM_SPIN','caa','ts');
 irf_plot(1,'newfigure');
