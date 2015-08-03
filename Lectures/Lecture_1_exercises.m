@@ -10,6 +10,11 @@
 %
 
 %% Download and examine CDF files
+mkdir Nordita2015
+cd Nordita2015/
+mkdir Event_20020330_1311
+cd Event_20020330_1311
+
 tint = '2002-03-30T13:11:30Z/2002-03-30T13:12:00Z';
 caa_download(tint,'C?_CP_FGM_FULL');
 info=spdfcdfinfo('CAA/C1_CP_FGM_FULL/C1_CP_FGM_FULL__20020330_131130_20020330_131200_V140306.cdf')
