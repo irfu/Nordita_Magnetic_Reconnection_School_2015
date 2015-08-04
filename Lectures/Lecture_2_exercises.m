@@ -6,113 +6,78 @@
 % Minimum Variance Analysis
 % De Hofmann-Teller frame
 % 
+% As real data we use Paschmann 2005 paper
+
 
 %% Example 1 ideal boundary, B change in one component
 % Lets generate 5samples/s time series during 1h after 2002-03-04 09:30 UTC,
 % including artificial boundary in the middle of the interval.
 
 T   = EpochTT('2002-03-04T09:30:00Z'):.2...
-     :EpochTT('2002-03-04T10:30:00Z');      % define time line as EpochTT object
-t   = T - T.start;                % define relative time in s from start
-Bx  = 5*tanh((t-1800)/60);      % define Bx jump 
-By  = -3*tanh((t-1800)/60);      % define Bx jump 
-Bz  = t*0; 
-TS1 = irf.ts_vec_xyz(T,[Bx By Bz]);                   % define scalar TSeries object
-TS1.units = 'nT';
-TS1.userData.LABLAXIS = 'B';
+     :EpochTT('2002-03-04T10:30:00Z');% define time line as EpochTT object
+t   = T - T.start;                    % define relative time in s from start
+Bx  =  5*tanh((t-1800)/60);           % define Bx +-5nT jump and 1min width
+By  = -3*tanh((t-1800)/60);           % define Bx -+3nT jump and 1min width
+Bz  = t*0;                            % define Bz to be zero
+TS1 = irf.ts_vec_xyz(T,[Bx By Bz]);   % define scalar TSeries object
+TS1.units = 'nT';                     % units
+TS1.userData.LABLAXIS = 'B';          % plot label axis
 
-h   = irf_plot(1,'newfigure');			        % initialize figure
-irf_plot(h,TS1);						                % plot times series  
-irf_minvar_gui(TS1);
+h = irf_plot(1,'newfigure');		  	  % initialize figure with one panel
+irf_plot(h,TS1);						          % plot times series  
+irf_minvar_gui(TS1);                  % run minimum variance analysis on time series
 
 %% Example XX ideal boundary, B change in two components
 % Lets generate 5samples/s time series during 1h after 2002-03-04 09:30 UTC,
 % including artificial boundary in the middle of the interval.
 
 T   = EpochTT('2002-03-04T09:30:00Z'):.2...
-     :EpochTT('2002-03-04T10:30:00Z');      % define time line as EpochTT object
-t   = T - T.start;                % define relative time in s from start
-Bx  = 5*tanh((t-1800)/60);      % define Bx jump 
-By  = -3*tanh((t-1800)/10);      % define Bx jump 
-Bz  = t*0; 
-TS1 = irf.ts_vec_xyz(T,[Bx By Bz]);                   % define scalar TSeries object
-TS1.units = 'nT';
-TS1.userData.LABLAXIS = 'B';
+     :EpochTT('2002-03-04T10:30:00Z');% define time line as EpochTT object
+t   = T - T.start;                    % define relative time in s from start
+Bx  =  5*tanh((t-1800)/60);           % define Bx +-5nT jump and 1min width
+By  = -3*tanh((t-1800)/10);           % define Bx -+3nT jump and 10s width
+Bz  = t*0;                            % define Bz to be zero
+TS1 = irf.ts_vec_xyz(T,[Bx By Bz]);   % define scalar TSeries object
+TS1.units = 'nT';                     % units
+TS1.userData.LABLAXIS = 'B';          % plot label axis
 
-h   = irf_plot(1,'newfigure');			        % initialize figure
-irf_plot(h,TS1);						                % plot times series  
-irf_minvar_gui(TS1);
+h = irf_plot(1,'newfigure');		  	  % initialize figure with one panel
+irf_plot(h,TS1);						          % plot times series  
+irf_minvar_gui(TS1);                  % run minimum variance analysis on time series
 
 %% Example XX ideal boundary, B change in two components + noise
 % Lets generate 5samples/s time series during 1h after 2002-03-04 09:30 UTC,
 % including artificial boundary in the middle of the interval.
 
 T   = EpochTT('2002-03-04T09:30:00Z'):.2...
-     :EpochTT('2002-03-04T10:30:00Z');      % define time line as EpochTT object
-t   = T - T.start;                % define relative time in s from start
-Bx  = 5*tanh((t-1800)/60);      % define Bx jump 
-By  = -3*tanh((t-1800)/10);      % define Bx jump 
-Bz  = t*0; 
-TS1 = irf.ts_vec_xyz(T,[Bx By Bz]);                   % define scalar TSeries object
-TS1 = TS1 + 1*rand(TS1.length,3);
-TS1.units = 'nT';
+     :EpochTT('2002-03-04T10:30:00Z');% define time line as EpochTT object
+t   = T - T.start;                    % define relative time in s from start
+Bx  =  5*tanh((t-1800)/60);           % define Bx jump +- 5nT and width 1 min
+By  = -3*tanh((t-1800)/10);           % define Bx jump -+ 3nT and width 10s
+Bz  = t*0;                            % define Bz as zero
+TS1 = irf.ts_vec_xyz(T,[Bx By Bz]);   % define scalar TSeries object
+TS1 = TS1 + 1*rand(TS1.length,3);     % add random noise of amplitude 1nT
+TS1.units = 'nT';                     % specify units
 TS1.userData.LABLAXIS = 'B';
 
-h   = irf_plot(1,'newfigure');			        % initialize figure
-irf_plot(h,TS1);						                % plot times series  
-irf_minvar_gui(TS1);
-
-%% Example XX, read time interval of data
-Tint = irf.tint('2001-03-01T01:00:00Z/2001-04-01T11:00:00Z');
-varName = 'sc_lat__C4_JP_AUX_PSE';
-varMat = local.c_read(varName,Tint,'mat');
-varTs = local.c_read(varName,Tint,'ts');
-irf_plot(varTs);
+h = irf_plot(1,'newfigure');		  	  % initialize figure with one panel
+irf_plot(h,TS1);						          % plot times series  
+irf_minvar_gui(TS1);                  % run minimum variance analysis on time series
 
 %% Example XX, magnetopause crossing Rosenqvist2008
+% http://www.cluster.rl.ac.uk/csdsweb-cgi/csdsweb_pick?P_TYPE=P1&YEAR=2001&MONTH=Jan&DAY=26&SUB_PLOT=S02
 
+% tInt = irf.tint('2001-01-26T10:30:00Z/2001-01-26T11:00:00Z');
+tInt = irf.tint('2001-07-05T04:30:00Z/2001-07-05T06:30:00Z');
 
+%caa_download(tInt,'C1_CP_FGM_SPIN');
+%caa_download(tInt,'C1_CP_EFW_L3_E3D_GSE');
+caa_download(tInt,'C1_CP_CIS_HIA_ONBOARD_MOMENTS');
 
-%% Example  2 Plot multicomponent data
-% Generate data with two components and plot in the same figure.
-% Add legend text in lower left corner
-% As you notice irfu-matlab interprets some common names for variables, 
-% i.e. B2 is assumed to be magnetic field measurement by Cluster 2
+caa_load C1_CP_FGM_SPIN
+B1 = irf_get_data('B_vec_xyz_gse__C1_CP_FGM_SPIN','caa','ts');
+irf_plot(1,'newfigure');
+irf_plot(B1);
+irf_minvar_gui(B1)
 
-y = exp(0.001*t).*cos(2*pi*t/180);	% z(t)=exp(0.001(t-to))*cos(t)
-F = TSeries(T,[x y]);							          % B2 has two components, x & y
-irf_plot(h,F)					          % plot in the same axis
-irf_legend({'X','Y'},[0.02 0.02])	% add legend text with the same colors as lines
-
-%% Example 3 Work with data, zoom in plots. 
-% - Generate second data set that is a function of first.
-%     Fnew = F*1.2 + 2	 
-% - Plot both data sets in separate panels.
-% - Zoom in to smaller 30min time interval .
-
-Fnew = F*2 + 2;
-
-h  = irf_plot(2,'newfigure');		% empty figure with 2 panels
-irf_plot(h(1),F);
-ylabel(h(1),'F');
-irf_legend(h(1),{'X','Y'},[0.02 0.98],'fontsize',20)
-irf_plot(h(2),Fnew);
-ylabel(h(2),'F_{new} = F * 2 + 2');
-
-tint_zoom = irf_time([2008 03 01 10 20 00]) + [0 1800]; % 10 min interval
-irf_zoom(h,'x',tint_zoom);
-irf_zoom(h,'y');
-
-%% Example  4 Compare two data  
-% Compare component-wise two datasets.
-% Add one more label row with hours from the beginning of time interval
-
-h=irf_plot({F,Fnew},'comp');
-ylabel(h(1),'F_X');
-title(h(1),T.start.utc('yyyy-mm-dd'));
-ylabel(h(2),'F_Y');
-irf_legend(h(1),{'FNew','Fnew=F*2+2'},[0.02 0.98])
-
-Hours=TSeries(T,(T-T.start)/3600); % hours from the beginning of the time interval
-irf_timeaxis(h(2),Hours,{'hours'})
-irf_timeaxis(h(end),'nodate');
+%% De Hofmann - Teller frame
