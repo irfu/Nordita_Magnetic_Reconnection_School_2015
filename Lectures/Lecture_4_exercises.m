@@ -8,6 +8,7 @@
 
 Tint = irf.tint('2002-03-30T13:11:30Z/2002-03-30T13:12:00Z');
 cd Event_20020330_1311
+caa_download(Tint,'C?_CP_AUX_POSGSE_1M'); % download missing position data
 c_eval('B?=c_caa_var_get(''B_vec_xyz_gse__C?_CP_FGM_FULL'',''ts'');') % Load TSeries of B GSE
 irf_pl_tx B?
 
@@ -36,3 +37,10 @@ fprintf('Angle between two normals %.2f deg\n',acosd(n1*n4'))
 c_4_v_gui B? % align C1 and C4
 
 %% Assignment use data from Paschmann 2005 paper
+%download missing data
+cd CAA_20010705_0430_20010705_0630
+Tint = irf.tint('2001-07-05T04:30:00Z/2001-07-05T06:30:00Z');
+caa_download(Tint,'C2_CP_FGM_FULL','nowildcard');   % download FGM data from CSA
+caa_download(Tint,'C3_CP_FGM_FULL','nowildcard');   % download FGM data from CSA
+caa_download(Tint,'C4_CP_FGM_FULL','nowildcard');   % download FGM data from CSA
+caa_download(Tint,'C?_CP_AUX_POSGSE_1M'); % download missing position data
