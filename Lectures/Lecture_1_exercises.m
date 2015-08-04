@@ -15,10 +15,44 @@ cd Nordita2015/
 mkdir Event_20020330_1311
 cd Event_20020330_1311
 
-tint = '2002-03-30T13:11:30Z/2002-03-30T13:12:00Z';
-caa_download(tint,'C?_CP_FGM_FULL');
-info=spdfcdfinfo('CAA/C1_CP_FGM_FULL/C1_CP_FGM_FULL__20020330_131130_20020330_131200_V140306.cdf')
+Tint = irf.tint('2002-03-30T13:11:30Z/2002-03-30T13:12:00Z'); % define event time interval
+caa_download(Tint,'C?_CP_FGM_FULL');   % download FGM data from CSA
+info = spdfcdfinfo('CAA/C1_CP_FGM_FULL/C1_CP_FGM_FULL__20020330_131130_20020330_131200_V140306.cdf'); % query metadata
 
+%% Time
+
+utcT1 = '2002-03-04T09:30:00Z'; % UTC string
+EpochTT1 = EpochTT(utcT1);      % New EpochTT object
+EpochTT2 = EpochTT1 + 10;       % New EpochTT object offset by 10 sec
+offset = EpochTT2 - EpochTT1;   % Offset between two times in sec
+if EpochTT2>EpochTT1            % Compare times
+  disp('larger!')
+end 
+
+EpochTT0 = EpochTT1 + (-5);     % New EpochTT with negative offset of 5 sec
+if EpochTT0<EpochTT1            % Compare times
+  disp('smaller!')
+end 
+
+EpochUnix1 = EpochUnix(utcT1);  % New EpochUnix
+if EpochUnix1 == EpochTT1       % Compare times
+  disp('equal!')
+end
+epochUnix = EpochUnix1.epochUnix; % double value of Unix epoch [sec]
+ttns = EpochUnix1.ttns;         % int64 value of TT epoch [ns]
+if ttns == EpochTT1.ttns        % Compare times
+  disp('equal!')
+end
+disp(EpochUnix1.utc)            % convert to UTC string
+
+TTarray = EpochTT0:1:EpochTT2;  % New time array, with 1 sec step
+TintLim = ...                   % Time interval
+  irf.tint('2002-03-04T09:30:00Z/2002-03-04T09:30:05Z');
+[idxIn,TTarrayIn] = ...
+  TTarray.tlim(TintLim);        % Limit TTarray by TintLim
+[idxOut,TTarrayOut] = ...
+  TTarray.tlim(TintLim,1);      % Limit TTarray by TintLim, XOR mode
+TTarray < EpochTT1              % compare times
 
 %% Example 1  artifical times series
 % Lets generate 5samples/s time series during 1h after 2002-03-04 09:30 UTC,
