@@ -2,7 +2,9 @@
 % 
 % Lecture 2 
 % Single s/c boundary methods
-%
+% 
+% Harris current sheet
+% Double Harris current sheet
 % Minimum Variance Analysis
 % De Hofmann-Teller frame
 % 
@@ -69,8 +71,8 @@ Bx  = B0x*tanh(t*vz/Ljy);             % define Bx jump
 By  = B0y*tanh(t*vz/Ljx);             % define By jump
 Bz  = t*0;                            % define Bz as zero
 
-Jx  = B0y/Ljx*sech(t*vz/Ljx).^2/mu0;   % Current sheet jx
-Jy  = B0x/Ljy*sech(t*vz/Ljy).^2/mu0;   % Current sheet jy
+Jx  = B0y/Ljx*sech(t*vz/Ljx).^2/mu0;  % Current sheet jx
+Jy  = B0x/Ljy*sech(t*vz/Ljy).^2/mu0;  % Current sheet jy
 Jz  = t*0;                            % zero current in Z directoin
 
 B   = irf.ts_vec_xyz(T,[Bx By Bz]);   % define B as TSeries
@@ -110,27 +112,30 @@ B_ = @(x,y,z) [B0x*tanh(z/Ljy)     -B0y*tanh(z/Ljx)    0*x];
 J_ = @(x,y,z) [B0y/Ljx*sech(z/Ljx).^2 B0x/Ljy*sech(z/Ljy).^2 0*x]/mu0;
 
 L = 1250e3;               % s/c separation scale [m]
-Rconf.dr1 = [0 0 0];    % C1 relative locations
-Rconf.dr2 = [L 0 L/3];
+Rconf.dr1 = [0 0 0];      % C1 relative locations
+Rconf.dr2 = [L 0 L/3];    % C2 -=-
 Rconf.dr3 = [0 L L/2];
 Rconf.dr4 = [0 0 L];
 
 Rref = irf.ts_vec_xyz(T,t*[0 0 vz]); % satellite moves in Z with vz
 Rref.units = 'm';
-R.C1 = Rref + Rconf.dr1;
-R.C2 = Rref + Rconf.dr2;
+R.C1 = Rref + Rconf.dr1;             % C1 position
+R.C2 = Rref + Rconf.dr2;             % C2 position 
 R.C3 = Rref + Rconf.dr3;
 R.C4 = Rref + Rconf.dr4;
-R.C  = Rref;
+R.C  = Rref;                         % s/c tetrahedron center 
 R.C.data = (R.C1.data+R.C2.data+R.C3.data+R.C4.data)/4;
 
 clear B
 B.C1 = R.C1;
-B.C1.units = 'nT';B.C1.userData.LABLAXIS = 'B';
+B.C1.units = 'nT';
+B.C1.userData.LABLAXIS = 'B';
 B.C1.data = B_(R.C1.data(:,1),R.C1.data(:,2),R.C1.data(:,3));
+
 B.C2 = B.C1;
 B.C3 = B.C1;
 B.C4 = B.C1;
+
 B.C2.data = B_(R.C2.data(:,1),R.C2.data(:,2),R.C2.data(:,3));
 B.C3.data = B_(R.C3.data(:,1),R.C3.data(:,2),R.C3.data(:,3));
 B.C4.data = B_(R.C4.data(:,1),R.C4.data(:,2),R.C4.data(:,3));
@@ -141,36 +146,55 @@ ylabel(h(2),'By [nT]');
 ylabel(h(3),'Bz [nT]');
 
 %% Curlometer, current from 4 s/c measurements
-curlB = c_4_grad(R,B,'curl');
-jCurlometer = curlB * (mu0^(-1));
-J = jCurlometer;
-J.data = J_(R.C.data(:,1),R.C.data(:,2),R.C.data(:,3));
-h=irf_plot({jCurlometer,J},'comp');
+curlB       = c_4_grad(R,B,'curl'); 
+jCurlometer = curlB * (mu0^(-1));   % Current in units nA/m^2
+J           = jCurlometer;
+J.data      = J_(R.C.data(:,1),R.C.data(:,2),R.C.data(:,3)); % theoretical current
+
+h = irf_plot({jCurlometer,J},'comp');
 irf_zoom(h,'x',irf.tint(J.time.start,J.time.stop))  % all subplots the same time
 
 %% Divergence B
-divB = c_4_grad(R,B,'div');
-jDiv = divB * (mu0^(-1));
-relErr = jDiv;
-relErr.data = jDiv.data ./ jCurlometer.abs.data;
+divB = c_4_grad(R,B,'div'); 
+relErr = divB;              % divB/|curlB|
+relErr.data = divB.data ./ curlB.abs.data;
 irf_plot({jDiv,relErr});
 
 %% De Hoffmann - Teller frame
-vSpacecraft = [0 0 vz];
-E.C1 = irf_e_vxb(vSpacecraft,B.C1);
+vSpacecraft = [0 0 vz];                    % s/c moves in z with vz [m/s]
+E.C1        = irf_e_vxb(vSpacecraft,B.C1); % E=-vxB
+
 h=irf_plot({E.C1,B.C1});
 irf_legend(h(1),{'Ex','Ey','Ez'},[0.02,0.98]);
 irf_legend(h(2),{'Bx','By','Bz'},[0.02,0.98]);
 VHT = irf_vht(E.C1,B.C1);
 
-%% De Hoffmann - Teller frame, 2 E field components
+%% Standard functions 
+Bo = @(z,l) tanh(z./l);          % Bx, l - thickness
+Ao = @(z,l) -l.*log(cosh(z./l)); % Ay
+Acontours = [0:-.1:-3];
 
-EE.C1 = E.C1;
-EE.C1.data = E.C1.data + (rand(size(E.C1.data))-0.5);
-BB.C1 = B.C1;
-BB.C1.data = B.C1.data + (rand(size(B.C1.data))-0.5);
-h=irf_plot({EE.C1,BB.C1});
-VHT = irf_vht(EE.C1,BB.C1,2);
+%% 2D Harris current sheet
+[X,Z] = meshgrid(-2:.1:2,-3:.1:3);
+irf_plot(1,'newfigure');
+contour(X,Z,Ao(Z,1),Acontours,'k')
+ylabel('Z'); xlabel('X');
+
+%% 2D Harris current sheet with magnetic islands
+% B at Zref is straight
+% 
+% 
+Zref = 3;
+Acontours = [-1:.03:1]*Ao(Zref,1);
+[X,Z] = meshgrid(-2:.1:2,-Zref:.1:Zref);
+thicknessVariation  = .5; 
+variationWavelength = 3;
+thick = @(x) 1 + thicknessVariation*cos(x*2*pi/variationWavelength);
+refAddition = Ao(Zref,1)-Ao(Zref,thick(X));
+A = Ao(Z,thick(X))+refAddition;
+irf_plot(1,'newfigure');
+contour(X,Z,A,Acontours,'k')
+ylabel('Z'); xlabel('X');
 
 
 %% Example XX, magnetopause crossing Paschmann 2005
@@ -192,7 +216,7 @@ if 0,
 end 
 
 caa_load C1_CP_FGM_SPIN
-B1 = irf_get_data('B_vec_xyz_gse__C1_CP_FGM_SPIN','caa','ts');
+B1 = irf_get_data('B_vec_xyz_gse__C1_CP_FGM_5VPS','caa','ts');
 irf_plot(1,'newfigure');
 irf_plot(B1);
 irf_minvar_gui(B1)
