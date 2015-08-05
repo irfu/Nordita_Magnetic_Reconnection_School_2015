@@ -36,7 +36,12 @@ Bfac.data(:,1)=Rperpx(:,1).*Bibm.data(:,1)+Rperpx(:,2).*Bibm.data(:,2)+Rperpx(:,
 Bfac.data(:,2)=Rperpy(:,1).*Bibm.data(:,1)+Rperpy(:,2).*Bibm.data(:,2)+Rperpy(:,3).*Bibm.data(:,3);
 
 % select time interval of interest
-tint1 = EpochUnix([iso2epoch('2003-03-01T03:59:07.4Z') iso2epoch('2003-03-01T03:59:08.2Z')]);
+tint1 = EpochUnix([iso2epoch('2003-03-01T03:59:06.0Z') iso2epoch('2003-03-01T03:59:08.2Z')]);
+% smaller time interval within tint 1, used in second plot panel (c)
+tint2 = EpochUnix([iso2epoch('2003-03-01T03:59:07.55Z') iso2epoch('2003-03-01T03:59:07.65Z')]);
+
+fprintf(strcat('tint1:',tint1.start.utc,'--',tint1.stop.utc,'\n'));
+fprintf(strcat('tint2:',tint2.start.utc,'--',tint2.stop.utc,'\n\n'));
 
 %extract shorter time interval
 Bibms=Bibm.tlim(tint1);
@@ -95,7 +100,7 @@ Bibmmva.data(:,3) = Bibms.data(:,1)*vmin(1)+Bibms.data(:,2)*vmin(2)+Bibms.data(:
 %some plots of magnetic field waveforms
 
 %Hodograms in Minimum variance coordinates
-if 1, 
+if 0, %set to 1 to produce plot
 fn=figure;
 set(fn,'Position',[10 400 600 200])
     h(1)=axes('position',[0.07 0.2 0.25 0.75]); % [x y dx dy]
@@ -134,7 +139,7 @@ end
 % B waveform in ISR2 coordinates and field-aligned coordiantes. 
 % Panel (c)
 
-if 1,
+if 0, %set to 1 to produce plot
 h=irf_plot(3,'newfigure'); 
 
 h(1)=irf_panel('Bisr2');
@@ -158,8 +163,6 @@ irf_legend(h(3),'(c)',[0.99 0.98],'color','k')
 xwidth = 0.86;
 ywidth = 0.18;
 
-tint2 = EpochUnix([iso2epoch('2003-03-01T03:59:07.55Z') iso2epoch('2003-03-01T03:59:07.65Z')]);
-
 irf_plot_axis_align(1,h(1:3))
 irf_zoom(h(1:2),'x',tint1);
 irf_zoom(h(3),'x',tint2);
@@ -181,7 +184,7 @@ end
 end
 
 % Hodogram in field-aligned coordinates
-if 1,
+if 0, %set to 1 to produce plot
 fn=figure;
 set(fn,'Position',[10 400 250 250])
     h(1)=axes('position',[0.2 0.2 0.75 0.75]); % [x y dx dy]
