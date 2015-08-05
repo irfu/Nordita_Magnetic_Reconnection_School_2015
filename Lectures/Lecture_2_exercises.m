@@ -105,6 +105,78 @@ Bnoisy.userData.LABLAXIS = 'B';
 
 irf_minvar_gui(Bnoisy);              % run minimum variance analysis on time series
 
+
+%% De Hoffmann - Teller frame
+vSpacecraft = [0 0 vz];                    % s/c moves in z with vz [m/s]
+E.C1        = irf_e_vxb(vSpacecraft,B.C1); % E=-vxB
+
+h=irf_plot({E.C1,B.C1});
+irf_legend(h(1),{'Ex','Ey','Ez'},[0.02,0.98]);
+irf_legend(h(2),{'Bx','By','Bz'},[0.02,0.98]);
+VHT = irf_vht(E.C1,B.C1);
+
+%% Standard functions 
+Bo = @(z,l) tanh(z./l);          % Bx, l - thickness
+Ao = @(z,l) -l.*log(cosh(z./l)); % Ay
+Acontours = [0:-.1:-3];
+
+%% 2D Harris current sheet
+[X,Z] = meshgrid(-2:.1:2,-3:.1:3);
+irf_plot(1,'newfigure');
+contour(X,Z,Ao(Z,1),Acontours,'k')
+ylabel('Z'); xlabel('X');
+
+%% 2D Harris current sheet with magnetic islands
+% B at Zref is straight
+% 
+% 
+Zref = 3;
+Acontours = [-1:.03:1]*Ao(Zref,1);
+[X,Z] = meshgrid(-2:.1:2,-Zref:.1:Zref);
+thicknessVariation  = .5; 
+variationWavelength = 3;
+thick = @(x) 1 + thicknessVariation*cos(x*2*pi/variationWavelength);
+refAddition = Ao(Zref,1)-Ao(Zref,thick(X));
+A = Ao(Z,thick(X))+refAddition;
+irf_plot(1,'newfigure');
+contour(X,Z,A,Acontours,'k')
+ylabel('Z'); xlabel('X');
+
+
+%% Example XX, magnetopause crossings in data 
+% http://www.cluster.rl.ac.uk/csdsweb-cgi/csdsweb_pick?P_TYPE=P1&YEAR=2001&MONTH=Jan&DAY=26&SUB_PLOT=S02
+
+% Tint = irf.tint('2001-01-26T10:30:00Z/2001-01-26T11:00:00Z');
+% Tint = irf.tint('2001-07-05T04:30:00Z/2001-07-05T06:30:00Z');
+Tint = irf.tint('2001-09-15T05:00:00Z/2001-09-15T05:15:00Z');
+
+if 0, 
+	caa_download(Tint,'C1_CP_FGM_SPIN');
+	caa_download(Tint,'C?_CP_FGM_5VPS');
+	caa_download(Tint,'C?_CP_FGM_FULL');
+	caa_download(Tint,'C1_CP_EFW_L2_E3D_GSE');
+	caa_download(Tint,'C1_CP_EFW_L3_E3D_GSE');
+	caa_download(Tint,'C?_CP_CIS_HIA_ONBOARD_MOMENTS');
+	caa_download(Tint,'C1_CP_CIS_HIA_HS_1D_PEF');
+	caa_download(Tint,'C1_CP_RAP_ESPCT6');
+	caa_download(Tint,'C1_CP_PEA_PITCH_SPIN_DEFlux');
+end 
+
+caa_load C1_CP_FGM_SPIN
+B1 = irf_get_data('B_vec_xyz_gse__C1_CP_FGM_5VPS','caa','ts');
+irf_plot(1,'newfigure');
+irf_plot(B1);
+irf_minvar_gui(B1)
+
+%% De Hofmann - Teller frame
+B1 = irf_get_data('B_vec_xyz_gse__C1_CP_FGM_SPIN','caa','ts');
+V1 = c_caa_var_get('velocity_gse__C1_CP_CIS_HIA_ONBOARD_MOMENTS','caa','ts');
+E1 = c_caa_var_get('E_Vec_xyz_GSE__C1_CP_EFW_L3_E3D_GSE','caa','ts');
+E1vxb = irf_e_vxb(V1,B1);
+V1exb = irf_e_vxb(E1,B1,-1);
+
+VHT = irf_vht(E1,B1);
+
 %% Example, multi s/c observations of current
 
 % Define functions
@@ -158,76 +230,5 @@ irf_zoom(h,'x',irf.tint(J.time.start,J.time.stop))  % all subplots the same time
 divB = c_4_grad(R,B,'div'); 
 relErr = divB;              % divB/|curlB|
 relErr.data = divB.data ./ curlB.abs.data;
-irf_plot({jDiv,relErr});
-
-%% De Hoffmann - Teller frame
-vSpacecraft = [0 0 vz];                    % s/c moves in z with vz [m/s]
-E.C1        = irf_e_vxb(vSpacecraft,B.C1); % E=-vxB
-
-h=irf_plot({E.C1,B.C1});
-irf_legend(h(1),{'Ex','Ey','Ez'},[0.02,0.98]);
-irf_legend(h(2),{'Bx','By','Bz'},[0.02,0.98]);
-VHT = irf_vht(E.C1,B.C1);
-
-%% Standard functions 
-Bo = @(z,l) tanh(z./l);          % Bx, l - thickness
-Ao = @(z,l) -l.*log(cosh(z./l)); % Ay
-Acontours = [0:-.1:-3];
-
-%% 2D Harris current sheet
-[X,Z] = meshgrid(-2:.1:2,-3:.1:3);
-irf_plot(1,'newfigure');
-contour(X,Z,Ao(Z,1),Acontours,'k')
-ylabel('Z'); xlabel('X');
-
-%% 2D Harris current sheet with magnetic islands
-% B at Zref is straight
-% 
-% 
-Zref = 3;
-Acontours = [-1:.03:1]*Ao(Zref,1);
-[X,Z] = meshgrid(-2:.1:2,-Zref:.1:Zref);
-thicknessVariation  = .5; 
-variationWavelength = 3;
-thick = @(x) 1 + thicknessVariation*cos(x*2*pi/variationWavelength);
-refAddition = Ao(Zref,1)-Ao(Zref,thick(X));
-A = Ao(Z,thick(X))+refAddition;
-irf_plot(1,'newfigure');
-contour(X,Z,A,Acontours,'k')
-ylabel('Z'); xlabel('X');
-
-
-%% Example XX, magnetopause crossing Paschmann 2005
-% http://www.cluster.rl.ac.uk/csdsweb-cgi/csdsweb_pick?P_TYPE=P1&YEAR=2001&MONTH=Jan&DAY=26&SUB_PLOT=S02
-
-% tInt = irf.tint('2001-01-26T10:30:00Z/2001-01-26T11:00:00Z');
-tInt = irf.tint('2001-07-05T04:30:00Z/2001-07-05T06:30:00Z');
-
-if 0, 
-	caa_download(tInt,'C1_CP_FGM_SPIN');
-	caa_download(tInt,'C1_CP_FGM_5VPS');
-	caa_download(tInt,'C1_CP_FGM_FULL');
-	caa_download(tInt,'C1_CP_EFW_L2_E3D_GSE');
-	caa_download(tInt,'C1_CP_EFW_L3_E3D_GSE');
-	caa_download(tInt,'C1_CP_CIS_HIA_ONBOARD_MOMENTS');
-	caa_download(tInt,'C1_CP_CIS_HIA_HS_1D_PEF');
-	caa_download(tInt,'C1_CP_RAP_ESPCT6');
-	caa_download(tInt,'C1_CP_PEA_PITCH_SPIN_DEFlux');
-end 
-
-caa_load C1_CP_FGM_SPIN
-B1 = irf_get_data('B_vec_xyz_gse__C1_CP_FGM_5VPS','caa','ts');
-irf_plot(1,'newfigure');
-irf_plot(B1);
-irf_minvar_gui(B1)
-
-%% De Hofmann - Teller frame
-B1 = irf_get_data('B_vec_xyz_gse__C1_CP_FGM_SPIN','caa','ts');
-V1 = c_caa_var_get('velocity_gse__C1_CP_CIS_HIA_ONBOARD_MOMENTS','caa','ts');
-E1 = c_caa_var_get('E_Vec_xyz_GSE__C1_CP_EFW_L3_E3D_GSE','caa','ts');
-E1vxb = irf_e_vxb(V1,B1);
-V1exb = irf_e_vxb(E1,B1,-1);
-
-VHT = irf_vht(E1,B1);
-
+irf_plot({divB,relErr});
 
