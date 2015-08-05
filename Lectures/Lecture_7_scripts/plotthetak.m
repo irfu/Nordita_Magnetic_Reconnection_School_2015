@@ -35,9 +35,12 @@ Bfac.data(:,2)=Rperpy(:,1).*Bibm.data(:,1)+Rperpy(:,2).*Bibm.data(:,2)+Rperpy(:,
 %define intervals 
 time = irf_time(tlimit(2),'epochtt>epoch')-irf_time(tlimit(1),'epochtt>epoch');
 dt = time/length(Bibm.data(:,1));
+
+%change this to approximate whistler frequency
 whistfreq = 100;
 
-% set each interval length to 10 wave periods
+% set each interval length to 10 wave periods, can change this different
+% values to see how MVA analysis is affected
 inttime = 10.0/whistfreq;
 numtvals = floor(inttime/dt);
 numintervals = floor(time/inttime);
