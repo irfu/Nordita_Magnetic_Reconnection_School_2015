@@ -11,6 +11,10 @@ if 0,
   Tint = irf.tint('2002-03-30T13:11:30Z/2002-03-30T13:12:00Z');
   caa_download(Tint,'C?_CP_FGM_FULL'); % download missing position data
 end
+if 0,
+  Tint = irf.tint('2002-03-30T13:10:30Z/2002-03-30T13:15:00Z');
+  caa_download(Tint,'C?_CP_AUX_POSGSE_1M'); % download missing position data
+end
 c_eval('B?=c_caa_var_get(''B_vec_xyz_gse__C?_CP_FGM_FULL'',''ts'');') % Load TSeries of B GSE
 irf_pl_tx B?
 
@@ -19,10 +23,6 @@ irf_pl_tx B?
 c_4_v_gui B?
 
 %% Error estimate
-if 0,
-  Tint = irf.tint('2002-03-30T13:10:30Z/2002-03-30T13:15:00Z');
-  caa_download(Tint,'C?_CP_AUX_POSGSE_1M'); % download missing position data
-end
 c_eval('R?=c_caa_var_get(''sc_r_xyz_gse__C?_CP_AUX_POSGSE_1M'',''ts'');') % Load TSeries of B GSE
 irf_pl_tx R?
 
